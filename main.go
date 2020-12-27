@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-gonic/gin"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mssql"
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/driver/sqlserver"
+	"gorm.io/gorm"
 )
 
 type UserInfos struct {
@@ -31,7 +33,8 @@ func init() {
 }
 
 func InitDB() (err error) {
-	db, err = gorm.Open("mssql", "sqlserver://SqlServer_username:SqlServer_Password@SqlServer_IP:SqlServer_port?database=SqlServer_Database")
+	dsn := "sqlserver://SqlServer_username:SqlServer_password@SqlServer_IP:SqlServer_Port?database=SqlServer_Table"
+	db, err = gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Printf("Connect database err ,%v\n", err)
 	}
@@ -135,8 +138,8 @@ func Register(r *gin.Context) {
 		Age:       input.Age,
 	}
 	db.Create(&newUser)
-	r.JSON(http.StatusOK, gin.H{
-		"code": 200,
+	r.JSON(http.StatusCreated, gin.H{
+		"code": 201,
 		"msg":  "Register successful",
 	})
 }
@@ -149,6 +152,57 @@ func isUsernameExist(db *gorm.DB, username string) bool {
 	return false
 }
 
-//func Login(l *gin.Context) {
-//
-//}
+func Login(l *gin.Context) {
+	var input struct {
+		Username string `json:"username" binding:"required"`
+		Password string `json:"password" binding:"required"`
+	}
+	err := l.BindJSON(&input)
+	if err != nil {
+		l.JSON(http.StatusUnprocessableEntity, gin.H{
+			"code": 422,
+			"msg":  "Input error please check it!",
+		})
+		return
+	}
+	//Whether Username exist or not
+	var user UserInfos
+	db.Where("username = ?", input.Username).First(&user)
+	if user.ID == 0 {
+		l.JSON(http.StatusUnprocessableEntity, gin.H{
+			"code": 422,
+			"msg":  "There are no username like this ,please register",
+		})
+		return
+	}
+	//Whether password correct
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
+		l.JSON(http.StatusBadRequest, gin.H{
+			"code": 400,
+			"msg":  "Incorrect Password Please check it",
+		})
+		return
+	}
+
+}
+
+var jwtKey = []byte("a_secret_crect")
+
+type Claims struct {
+	UserID uint
+	jwt.StandardClaims
+}
+
+func ReleaceToken(user UserInfos) (string, error) {
+	expirationTime := time.Now().Add(7 * 24 * time.Hour)
+	claims := &Claims{
+		UserID: user.ID,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expirationTime.Unix(),
+			IssuedAt:  time.Now().Unix(),
+			Issuer:    "Issure_Code",
+			Subject:   "user token",
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+}
