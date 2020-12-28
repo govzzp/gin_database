@@ -33,12 +33,12 @@ func init() {
 }
 
 func InitDB() (err error) {
-	dsn := "sqlserver://SqlServer_username:SqlServer_password@SqlServer_IP:SqlServer_Port?database=SqlServer_Table"
+	dsn := "sqlserver://SqlServer_username:SqlServer_Password@SqlServer_IP:SqlServer_port?database=SqlServer_Database"
 	db, err = gorm.Open(sqlserver.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Printf("Connect database err ,%v\n", err)
 	}
-	db.AutoMigrate(&UserInfos{})
+	_ = db.AutoMigrate(&UserInfos{})
 	return
 }
 
@@ -183,7 +183,20 @@ func Login(l *gin.Context) {
 		})
 		return
 	}
-
+	token, err := ReleaseToken(user)
+	if err != nil {
+		l.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"msg":  "server error",
+			//log.Printf("token gernerate error : %v",err)
+		})
+		return
+	}
+	l.JSON(http.StatusOK, gin.H{
+		"code":    200,
+		"data":    gin.H{"token": token},
+		"message": "登录成功",
+	})
 }
 
 var jwtKey = []byte("a_secret_crect")
@@ -193,7 +206,7 @@ type Claims struct {
 	jwt.StandardClaims
 }
 
-func ReleaceToken(user UserInfos) (string, error) {
+func ReleaseToken(user UserInfos) (string, error) {
 	expirationTime := time.Now().Add(7 * 24 * time.Hour)
 	claims := &Claims{
 		UserID: user.ID,
@@ -205,4 +218,17 @@ func ReleaceToken(user UserInfos) (string, error) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
+}
+func ParseToken(tokenString string) (*jwt.Token, *Claims, error) {
+	claims := &Claims{}
+
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (i interface{}, err error) {
+		return jwtKey, nil
+	})
+	return token, claims, err
 }
