@@ -16,9 +16,9 @@ type Book struct {
 type Borrow struct {
 	gorm.Model
 	Username   string `gorm:"type:varchar(12);index;unique;not null;" json:"username"`
-	ISBN       string `gorm:"type:varchar(50)；not null;" json:"isbn"`
+	ISBN       string `gorm:"type:varchar(50); not null;" json:"isbn"`
 	bookName   string `gorm:"type:varchar(200);"  json:"book_name"`
-	getBookNum string `gorm:"type:varchar(200);"json:"getbooknum"`
+	getBookNum string `gorm:"type:varchar(200);" json:"getbooknum"`
 }
 
 type UserInfos struct {
@@ -29,4 +29,9 @@ type UserInfos struct {
 	Power     int    `gorm:"type:int;" json:"power"`                                //用户权限 1为正常用户 2为管理员用户
 	Sex       int    `gorm:"type:int;default:0;" json:"sex"`                        //用户性别
 	Age       int    `gorm:"type:int;" json:"age"`                                  //用户年龄
+}
+type Token struct {
+	gorm.Model
+	UserID uint
+	Token string
 }

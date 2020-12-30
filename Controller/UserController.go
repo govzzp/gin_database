@@ -3,12 +3,14 @@ package Controller
 import (
 	"github.com/gin-gonic/gin"
 	"go_free/common"
+	"go_free/dto"
 	"go_free/model"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"net/http"
 	"regexp"
 )
+
 func Register(r *gin.Context) {
 	db := common.Getdb()
 	num := `[0-9]{1}`
@@ -152,9 +154,25 @@ func Login(l *gin.Context) {
 		})
 		return
 	}
+	tx := db.Begin()
+	if tx.Create(&model.Token{UserID: user.ID,Token: token}).RowsAffected !=1 {
+		l.JSON(http.StatusInternalServerError,gin.H{
+			"code":500,
+			"msg":"Internet Server Error!",
+		})
+		tx.Commit()
+		return
+	}
 	l.JSON(http.StatusOK, gin.H{
 		"code":    200,
 		"data":    gin.H{"token": token},
 		"message": "登录成功",
+	})
+}
+func Info(c *gin.Context) {
+	user, _ := c.Get("user")
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"data": gin.H{"user": dto.ToUserDto(user.(model.UserInfos))},
 	})
 }
