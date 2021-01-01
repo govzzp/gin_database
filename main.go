@@ -8,11 +8,15 @@ import (
 
 func main() {
 	r := gin.Default()
-	auth := r.Group("/api/auth")
+	user := r.Group("/api/auth")
 	{
-		auth.POST("/register",Controller.Register)
-		auth.PUT("/login",Controller.Login)
-		auth.GET("/info",Middleware.AuthMiddleware(),Controller.Info)
+		user.POST("/register", Controller.Register)
+		user.PUT("/login", Controller.Login)
+		user.GET("/info", Middleware.AuthMiddleware(), Controller.Info)
+	}
+	book := r.Group("/api/book")
+	{
+		book.POST("/addbook",Controller.Addbook)
 	}
 	panic(r.Run(":8080"))
 }

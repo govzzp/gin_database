@@ -7,11 +7,11 @@ import (
 type Book struct {
 	gorm.Model
 	ISBN       string `gorm:"type:varchar(50);index;unique;not null;" json:"isbn"`
-	bookName   string `gorm:"type:varchar(200);" json:"bookname"`
+	BookName   string `gorm:"type:varchar(200);" json:"bookname"`
 	Author     string `gorm:"type:varchar(100);" json:"author"`
 	Press      string `gorm:"type:varchar(100);" json:"press"`
 	Category   string `gorm:"type:varchar(100);" json:"category"`
-	getBooknum string `gorm:"type:varchar(200);" json:"getbooknum"`
+	GetBooknum string `gorm:"type:varchar(200);" json:"getbooknum"`
 }
 type Borrow struct {
 	gorm.Model
@@ -33,5 +33,5 @@ type UserInfos struct {
 type Token struct {
 	gorm.Model
 	UserID uint
-	Token string
+	Token  string
 }

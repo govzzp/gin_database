@@ -98,7 +98,15 @@ func Register(r *gin.Context) {
 		Sex:       input.Sex,
 		Age:       input.Age,
 	}
-	db.Create(&newUser)
+	tx := db.Begin()
+	if tx.Create(&newUser).RowsAffected != 1  {
+		r.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"msg":  "Internet Server Error!",
+		})
+		tx.Commit()
+		return
+	}
 	r.JSON(http.StatusCreated, gin.H{
 		"code": 201,
 		"msg":  "Register successful",
@@ -155,10 +163,10 @@ func Login(l *gin.Context) {
 		return
 	}
 	tx := db.Begin()
-	if tx.Create(&model.Token{UserID: user.ID,Token: token}).RowsAffected !=1 {
-		l.JSON(http.StatusInternalServerError,gin.H{
-			"code":500,
-			"msg":"Internet Server Error!",
+	if tx.Create(&model.Token{UserID: user.ID, Token: token}).RowsAffected != 1 {
+		l.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"msg":  "Internet Server Error!",
 		})
 		tx.Commit()
 		return
