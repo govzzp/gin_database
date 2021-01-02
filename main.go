@@ -17,6 +17,8 @@ func main() {
 	book := r.Group("/api/book")
 	{
 		book.POST("/addbook",Controller.Addbook)
+		book.PUT("/updatebook",Controller.Changebook)
+		book.DELETE("deletebook",Controller.Deletebook)
 	}
 	panic(r.Run(":8080"))
 }
