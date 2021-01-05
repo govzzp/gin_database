@@ -27,9 +27,9 @@
     "telephone":"00000000000",
     "username":"admin",
     "password":"password",
-    "power":x,
-    "sex":x,
-    "age":xx
+    "power":1,
+    "sex":1,
+    "age":00
 }
 ```
 
@@ -184,7 +184,7 @@
 ```json
 {
     "code": 200,
-    "id": x,
+    "id": 1,
     "msg": "You Successfully back this book"
 }
 ```
