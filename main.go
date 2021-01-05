@@ -16,6 +16,7 @@ func main() {
 	}
 	book := r.Group("/api/book")
 	{
+		book.GET("/", Controller.Allbooks)
 		book.POST("/", Controller.Addbook)
 		book.PUT("/", Controller.Changebook)
 		book.DELETE("/", Controller.Deletebook)

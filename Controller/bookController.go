@@ -145,12 +145,12 @@ func Deletebook(d *gin.Context) {
 	})
 }
 
-//func Allbooks(a *gin.Context) {
-//
-//	db := common.Getdb()
-//	result := db.Find(&model.Book{},n)
-//	a.JSON(http.StatusOK,gin.H{
-//		"code":200,
-//
-//	})
-//}
+func Allbooks(a *gin.Context) {
+	var books []model.Book
+	db := common.Getdb()
+	db.Model(&model.Book{}).Find(&books)
+	a.JSON(http.StatusOK,gin.H{
+		"code":200,
+		"data": books,
+	})
+}
