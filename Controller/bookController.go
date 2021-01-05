@@ -16,7 +16,7 @@ func Addbook(add *gin.Context) {
 		Author     string `binding:"required" json:"author"`
 		Press      string `binding:"required" json:"press"`    //出版社
 		Category   string `binding:"required" json:"category"` //种类
-		GetBooknum string `binding:"required" json:json:"getbooknum"`
+		GetBooknum string `binding:"required" json:"getbooknum"`
 		Position   string `binding:"required" json:"position"`
 	}
 	err := add.BindJSON(&input)
@@ -37,9 +37,9 @@ func Addbook(add *gin.Context) {
 	var book model.Book
 	db.Where("book_code = ?", input.BookCode).First(&book)
 	if book.ID != 0 {
-		add.JSON(http.StatusUnprocessableEntity,gin.H{
-			"code":422,
-			"msg":"This Code of book is already be used ,please use another",
+		add.JSON(http.StatusUnprocessableEntity, gin.H{
+			"code": 422,
+			"msg":  "This Code of book is already be used ,please use another",
 		})
 		return
 	}
@@ -77,7 +77,7 @@ func Changebook(c *gin.Context) {
 		Author     string `binding:"required" json:"author"`
 		Press      string `binding:"required" json:"press"`    //出版社
 		Category   string `binding:"required" json:"category"` //种类
-		GetBooknum string `binding:"required" json:json:"getbooknum"`
+		GetBooknum string `binding:"required" json:"getbooknum"`
 		Position   string `binding:"required" json:"position"`
 	}
 	err := c.BindJSON(&input)
@@ -99,7 +99,7 @@ func Changebook(c *gin.Context) {
 		Position:   input.Position,
 	}
 	tx := db.Begin()
-	if tx.Where("book_code = ?",input.BookCode).UpdateColumns(&updateBook).RowsAffected != 1 {
+	if tx.Where("book_code = ?", input.BookCode).UpdateColumns(&updateBook).RowsAffected != 1 {
 		db.Rollback()
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"code": 500,
@@ -110,40 +110,41 @@ func Changebook(c *gin.Context) {
 	tx.Commit()
 	var book model.Book
 	db.Where("book_code = ?", input.BookCode).First(&book)
-	c.JSON(http.StatusOK,gin.H{
-		"code":200,
-		"msg":"Book Update OK ",
-		"id":updateBook.ID,
+	c.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"msg":  "Book Update OK ",
+		"id":   book.ID,
 	})
 }
 func Deletebook(d *gin.Context) {
 	db := common.Getdb()
-	var input struct{
+	var input struct {
 		BookCode string `binding:"required" json:"bookcode"`
 	}
 	err := d.BindJSON(&input)
 	if err != nil {
-		d.JSON(http.StatusUnprocessableEntity,gin.H{
-			"code":422,
-			"msg":"Input Error Please Check it!",
+		d.JSON(http.StatusUnprocessableEntity, gin.H{
+			"code": 422,
+			"msg":  "Input Error Please Check it!",
 		})
 		return
 	}
 
 	tx := db.Begin()
-	if tx.Model(&model.Book{}).Debug().Where("book_code = ?",input.BookCode).Delete(&model.Book{}).RowsAffected != 1{
+	if tx.Model(&model.Book{}).Where("book_code = ?", input.BookCode).Delete(&model.Book{}).RowsAffected != 1 {
 		tx.Rollback()
-		d.JSON(http.StatusInternalServerError,gin.H{
-			"code":500,
-			"msg":"Database Error!",
+		d.JSON(http.StatusInternalServerError, gin.H{
+			"code": 500,
+			"msg":  "Database Error!",
 		})
 		return
 	}
-	d.JSON(http.StatusOK,gin.H{
-		"code":200,
-		"msg":"Delete book Successful!",
+	d.JSON(http.StatusOK, gin.H{
+		"code": 200,
+		"msg":  "Delete book Successful!",
 	})
 }
+
 //func Allbooks(a *gin.Context) {
 //
 //	db := common.Getdb()

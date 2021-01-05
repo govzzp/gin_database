@@ -16,9 +16,14 @@ func main() {
 	}
 	book := r.Group("/api/book")
 	{
-		book.POST("/addbook",Controller.Addbook)
-		book.PUT("/updatebook",Controller.Changebook)
-		book.DELETE("deletebook",Controller.Deletebook)
+		book.POST("/", Controller.Addbook)
+		book.PUT("/", Controller.Changebook)
+		book.DELETE("/", Controller.Deletebook)
+	}
+	lend := r.Group("/api/lend")
+	{
+		lend.POST("/", Controller.Lend)
+		lend.DELETE("/", Controller.Back)
 	}
 	panic(r.Run(":8080"))
 }

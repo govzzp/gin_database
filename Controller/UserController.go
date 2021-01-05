@@ -36,7 +36,7 @@ func Register(r *gin.Context) {
 	if len(input.Telephone) != 11 {
 		r.JSON(http.StatusUnprocessableEntity, gin.H{
 			"code": 422,
-			"msg":  "Telephone number must be 11",
+			"msg":  "Telephone number must be 11 words!",
 		})
 		return
 	}
