@@ -1,14 +1,15 @@
 package Controller
 
 import (
-	"github.com/gin-gonic/gin"
 	"go_free/common"
 	"go_free/dto"
 	"go_free/model"
-	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 	"net/http"
 	"regexp"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 func Register(r *gin.Context) {
@@ -99,7 +100,7 @@ func Register(r *gin.Context) {
 		Age:       input.Age,
 	}
 	tx := db.Begin()
-	if tx.Create(&newUser).RowsAffected != 1  {
+	if tx.Create(&newUser).RowsAffected != 1 {
 		r.JSON(http.StatusInternalServerError, gin.H{
 			"code": 500,
 			"msg":  "Internet Server Error!",
@@ -115,10 +116,7 @@ func Register(r *gin.Context) {
 func isUsernameExist(db *gorm.DB, username string) bool {
 	var user model.UserInfos
 	db.Where("username = ?", username).First(&user)
-	if user.ID != 0 {
-		return true
-	}
-	return false
+	return user.ID != 0
 }
 
 func Login(l *gin.Context) {
