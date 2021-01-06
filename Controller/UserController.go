@@ -115,7 +115,10 @@ func Register(r *gin.Context) {
 func isUsernameExist(db *gorm.DB, username string) bool {
 	var user model.UserInfos
 	db.Where("username = ?", username).First(&user)
-	return user.ID != 0
+	if user.ID != 0 {
+		return true
+	}
+	return false
 }
 
 func Login(l *gin.Context) {

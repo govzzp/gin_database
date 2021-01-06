@@ -2,10 +2,11 @@ package common
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"go_free/model"
-
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"os"
 )
 
 var db *gorm.DB
@@ -15,9 +16,31 @@ func init() {
 		panic(err)
 	}
 }
-
+func InitConfig() {
+	workDir, _ := os.Getwd()
+	viper.SetConfigName("config")
+	viper.SetConfigType("yml")
+	viper.AddConfigPath(workDir + "\\config")
+	err := viper.ReadInConfig()
+	if err != nil {
+		panic(err)
+	}
+}
 func InitDB() (err error) {
-	dsn := "mysql_username:mysql_password@tcp(mysql_IP:mysql_port)/mysql_database?charset=utf8mb4&parseTime=True&loc=Local"
+	InitConfig()
+	host := viper.GetString("datasource.host")
+	port := viper.GetString("datasource.port")
+	username := viper.GetString("datasource.username")
+	password := viper.GetString("datasource.password")
+	charset := viper.GetString("datasource.charset")
+	database := viper.GetString("datasource.database")
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=%s&parseTime=True&loc=Local",
+		username,
+		password,
+		host,
+		port,
+		database,
+		charset)
 	db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		fmt.Printf("Connect database err ,%v\n", err)

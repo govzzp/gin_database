@@ -39,6 +39,13 @@ func Lend(l *gin.Context) {
 		})
 		return
 	}
+	if input.BookName != book.BookName {
+		l.JSON(http.StatusUnprocessableEntity,gin.H{
+			"code":422,
+			"msg":"Error BookName Please Check it!",
+		})
+		return
+	}
 	var user model.UserInfos
 	db.Table("user_infos").Where("username = ?", input.Username).First(&user)
 	if user.ID == 0 {
@@ -101,6 +108,13 @@ func Back(b *gin.Context) {
 		})
 		return
 	}
+	if input.BookName != book.BookName {
+		b.JSON(http.StatusUnprocessableEntity,gin.H{
+			"code":422,
+			"msg":"Error BookName Please Check it!",
+		})
+		return
+	}
 	var user model.UserInfos
 	db.Table("user_infos").Where("username = ?", input.Username).First(&user)
 	if user.ID == 0 {
@@ -134,3 +148,4 @@ func Back(b *gin.Context) {
 		"id":   borrow.ID,
 	})
 }
+
