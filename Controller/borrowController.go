@@ -4,8 +4,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"go_free/common"
 	"go_free/model"
+	"go_free/response"
 	"net/http"
 )
+
+
 
 func Lend(l *gin.Context) {
 	db := common.Getdb()
@@ -17,42 +20,52 @@ func Lend(l *gin.Context) {
 	}
 	err := l.BindJSON(&input)
 	if err != nil {
-		l.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code": 422,
-			"msg":  "Input error please check your input!",
-		})
+		response.Response(l,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"Input error please check your input!",
+			)
 		return
 	}
 	if len(input.BookCode) != 13 {
-		l.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code": 422,
-			"msg":  "Book_Code must be 13 words!",
-		})
+		response.Response(l,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"Book_Code must be 13 words!",
+			)
 		return
 	}
 	var book model.Book
 	db.Table("books").Where("book_code = ?", input.BookCode).First(&book)
 	if book.ID == 0 {
-		l.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code": 422,
-			"msg":  "Book is not exist,please check it",
-		})
+		response.Response(l,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"Book is not exist,please check it",
+			)
 		return
 	}
 	if input.BookName != book.BookName {
-		l.JSON(http.StatusUnprocessableEntity,gin.H{
-			"code":422,
-			"msg":"Error BookName Please Check it!",
-		})
+		response.Response(l,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"Error BookName Please Check it!",
+		)
 		return
 	}
 	var user model.UserInfos
 	db.Table("user_infos").Where("username = ?", input.Username).First(&user)
 	if user.ID == 0 {
-		l.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code": 422,
-			"msg":  "User not exist please Register user",
-		})
+		response.Response(l,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"User not exist please Register user",
+		)
 		return
 	}
 	nowBorrow := model.Borrow{
@@ -64,17 +77,19 @@ func Lend(l *gin.Context) {
 	tx := db.Begin()
 	if tx.Create(&nowBorrow).RowsAffected != 1 {
 		tx.Rollback()
-		l.JSON(http.StatusInternalServerError, gin.H{
-			"code": 500,
-			"msg":  "Internet Server Error!",
-		})
+		response.Response(l,
+			http.StatusInternalServerError,
+			500,
+			nil,
+			"Internet Server Error!",
+			)
 		tx.Commit()
 		return
 	}
-	l.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "borrow book successful!",
-	})
+	response.Success(l,
+		nil,
+		"borrow book successful!",
+		)
 }
 func Back(b *gin.Context) {
 	db := common.Getdb()
@@ -86,66 +101,79 @@ func Back(b *gin.Context) {
 	}
 	err := b.BindJSON(&input)
 	if err != nil {
-		b.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code": 422,
-			"msg":  "input error please check it !",
-		})
+		response.Response(b,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"input error please check it !",
+		)
+
 		return
 	}
 	if len(input.BookCode) != 13 {
-		b.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code": 422,
-			"msg":  "BookCode must be 13 words!",
-		})
+		response.Response(b,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"BookCode must be 13 words!",
+		)
 		return
 	}
 	var book model.Book
 	db.Table("books").Where("book_code = ? ", input.BookCode).First(&book)
 	if book.ID == 0 {
-		b.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code": 422,
-			"msg":  "Unknow Book Please call the Administrator!",
-		})
+		response.Response(b,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"Unknow Book Please call the Administrator!",
+		)
 		return
 	}
 	if input.BookName != book.BookName {
-		b.JSON(http.StatusUnprocessableEntity,gin.H{
-			"code":422,
-			"msg":"Error BookName Please Check it!",
-		})
+		response.Response(b,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"Unknow Book Please call the Administrator!",
+		)
 		return
 	}
 	var user model.UserInfos
 	db.Table("user_infos").Where("username = ?", input.Username).First(&user)
 	if user.ID == 0 {
-		b.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code": 422,
-			"msg":  "The Username is not exist Please Register it !",
-		})
+		response.Response(b,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"The Username is not exist Please Register it !",
+		)
 		return
 	}
 	var borrow model.Borrow
 	db.Where("book_code = ? ", input.BookCode).First(&borrow)
 	if borrow.ID == 0 {
-		b.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code": 422,
-			"msg":  "You are not borrow this book ,Please call the Administrator!",
-		})
+		response.Response(b,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"You are not borrow this book ,Please call the Administrator!",
+		)
 		return
 	}
 	tx := db.Begin()
 	if tx.Model(&model.Borrow{}).Where("book_code = ?", input.BookCode).Delete(&model.Borrow{}).RowsAffected != 1 {
 		tx.Rollback()
-		b.JSON(http.StatusInternalServerError, gin.H{
-			"code": 500,
-			"msg":  "Database Error!",
-		})
+		response.Response(b,
+			http.StatusInternalServerError,
+			500,
+			nil,
+			"Database Error!",
+		)
 		return
 	}
-	b.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "You Successfully back this book",
-		"id":   borrow.ID,
-	})
+	response.Success(b,
+		gin.H{"id":borrow.ID},
+		"You Successfully back this book",
+		)
 }
-

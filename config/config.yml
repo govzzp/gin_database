@@ -6,4 +6,3 @@ datasource:
   password: root
   database: go_user
   charset: utf8mb4
-

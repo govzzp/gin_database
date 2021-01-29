@@ -7,12 +7,15 @@ import (
 )
 
 func main() {
+	//gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
-	user := r.Group("/api/auth")
+
+	user := r.Group("/api/user")
 	{
 		user.POST("/register", Controller.Register)
 		user.PUT("/login", Controller.Login)
 		user.GET("/info", Middleware.AuthMiddleware(), Controller.Info)
+		user.DELETE("/logout",Middleware.AuthMiddleware(),Controller.Logout)
 	}
 	book := r.Group("/api/book")
 	{
@@ -28,4 +31,3 @@ func main() {
 	}
 	panic(r.Run(":8080"))
 }
-

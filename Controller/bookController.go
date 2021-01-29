@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go_free/common"
 	"go_free/model"
+	"go_free/response"
 	"net/http"
 )
 
@@ -21,26 +22,32 @@ func Addbook(add *gin.Context) {
 	}
 	err := add.BindJSON(&input)
 	if err != nil {
-		add.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code":    422,
-			"message": "input book info error please check your input",
-		})
+		response.Response(add,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"input book info error please check your input",
+			)
 		return
 	}
 	if len(input.ISBN) != 13 {
-		add.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code": 422,
-			"msg":  "ISBN number must be 13 words",
-		})
+		response.Response(add,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"ISBN number must be 13 words",
+		)
 		return
 	}
 	var book model.Book
 	db.Where("book_code = ?", input.BookCode).First(&book)
 	if book.ID != 0 {
-		add.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code": 422,
-			"msg":  "This Code of book is already be used ,please use another",
-		})
+		response.Response(add,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"This Code of book is already be used ,please use another",
+		)
 		return
 	}
 	newBook := model.Book{
@@ -56,17 +63,16 @@ func Addbook(add *gin.Context) {
 
 	tx := db.Begin()
 	if tx.Create(&newBook).RowsAffected != 1 {
-		add.JSON(http.StatusInternalServerError, gin.H{
-			"code": 500,
-			"msg":  "Internet Server Error!",
-		})
+		response.Response(add,
+			http.StatusInternalServerError,
+			500,
+			nil,
+			"Internet Server Error!",
+		)
 		tx.Commit()
 		return
 	}
-	add.JSON(http.StatusCreated, gin.H{
-		"code": 201,
-		"msg":  "Add book Successful",
-	})
+	response.Success(add,nil,"Add book Successful")
 }
 func Changebook(c *gin.Context) {
 	db := common.Getdb()
@@ -82,10 +88,12 @@ func Changebook(c *gin.Context) {
 	}
 	err := c.BindJSON(&input)
 	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code": 422,
-			"msg":  "input error please check your input !",
-		})
+		response.Response(c,
+			http.StatusUnprocessableEntity,
+			422,
+			nil,
+			"input error please check your input !",
+		)
 		return
 	}
 	updateBook := model.Book{
@@ -101,20 +109,18 @@ func Changebook(c *gin.Context) {
 	tx := db.Begin()
 	if tx.Where("book_code = ?", input.BookCode).UpdateColumns(&updateBook).RowsAffected != 1 {
 		db.Rollback()
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"code": 500,
-			"msg":  "Internet Server Error!",
-		})
+		response.Response(c,
+			http.StatusInternalServerError,
+			500,
+			nil,
+			"Internet Server Error!",
+		)
 		return
 	}
 	tx.Commit()
 	var book model.Book
 	db.Where("book_code = ?", input.BookCode).First(&book)
-	c.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "Book Update OK ",
-		"id":   book.ID,
-	})
+	response.Success(c,gin.H{"id":book.ID},"Book Update OK ")
 }
 func Deletebook(d *gin.Context) {
 	db := common.Getdb()
@@ -123,34 +129,37 @@ func Deletebook(d *gin.Context) {
 	}
 	err := d.BindJSON(&input)
 	if err != nil {
-		d.JSON(http.StatusUnprocessableEntity, gin.H{
-			"code": 422,
-			"msg":  "Input Error Please Check it!",
-		})
+		response.Response(d,
+			http.StatusUnprocessableEntity,
+			422,nil,
+			"Input Error Please Check it!",
+			)
 		return
 	}
 
 	tx := db.Begin()
 	if tx.Model(&model.Book{}).Where("book_code = ?", input.BookCode).Delete(&model.Book{}).RowsAffected != 1 {
 		tx.Rollback()
-		d.JSON(http.StatusInternalServerError, gin.H{
-			"code": 500,
-			"msg":  "Database Error!",
-		})
+		response.Response(d,
+			http.StatusInternalServerError,
+			500,
+			nil,
+			"Database Error!",
+			)
 		return
 	}
-	d.JSON(http.StatusOK, gin.H{
-		"code": 200,
-		"msg":  "Delete book Successful!",
-	})
+	response.Success(d,
+		nil,
+		"Delete book Successful!",
+		)
 }
 
 func Allbooks(a *gin.Context) {
 	var books []model.Book
 	db := common.Getdb()
 	db.Model(&model.Book{}).Find(&books)
-	a.JSON(http.StatusOK,gin.H{
-		"code":200,
-		"data": books,
-	})
+	response.Success(a,
+		gin.H{"data": books},
+		"Success",
+		)
 }
